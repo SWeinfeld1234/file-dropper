@@ -4,3 +4,4 @@ certs/
 *.log
 .DS_Store
 Thumbs.db
+.sfdx/
