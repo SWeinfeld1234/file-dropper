@@ -23,7 +23,7 @@
   <FormSettings>
     <Form xsi:type="ItemEdit">
       <DesktopSettings>
-        <SourceLocation DefaultValue="https://localhost:3000/taskpane.html"/>
+        <SourceLocation DefaultValue="https://sweinfeld1234.github.io/file-dropper/src/taskpane.html"/>
         <RequestedHeight>450</RequestedHeight>
       </DesktopSettings>
     </Form>
@@ -107,13 +107,13 @@
 
     <Resources>
       <bt:Images>
-        <bt:Image id="icon16"  DefaultValue="https://localhost:3000/assets/icon-16.png"/>
-        <bt:Image id="icon32"  DefaultValue="https://localhost:3000/assets/icon-32.png"/>
-        <bt:Image id="icon80"  DefaultValue="https://localhost:3000/assets/icon-80.png"/>
+        <bt:Image id="icon16"  DefaultValue="https://sweinfeld1234.github.io/file-dropper/src/assets/icon-16.png"/>
+        <bt:Image id="icon32"  DefaultValue="https://sweinfeld1234.github.io/file-dropper/src/assets/icon-32.png"/>
+        <bt:Image id="icon80"  DefaultValue="https://sweinfeld1234.github.io/file-dropper/src/assets/icon-80.png"/>
       </bt:Images>
       <bt:Urls>
-        <bt:Url id="taskPaneUrl"    DefaultValue="https://localhost:3000/taskpane.html"/>
-        <bt:Url id="functionFileUrl" DefaultValue="https://localhost:3000/function-file.html"/>
+        <bt:Url id="taskPaneUrl"    DefaultValue="https://sweinfeld1234.github.io/file-dropper/src/taskpane.html"/>
+        <bt:Url id="functionFileUrl" DefaultValue="https://sweinfeld1234.github.io/file-dropper/src/function-file.html"/>
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="groupLabel" DefaultValue="Azure Files"/>
