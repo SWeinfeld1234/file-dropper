@@ -12,8 +12,9 @@
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="Azure File Attacher"/>
   <Description DefaultValue="Drag and drop files to attach them to your email."/>
-  <IconUrl DefaultValue="https://sweinfeld1234.github.io/file-dropper/src/assets/icon-32.png"/>
-  <HighResolutionIconUrl DefaultValue="https://sweinfeld1234.github.io/file-dropper/src/assets/icon-80.png"/>
+  <IconUrl DefaultValue="https://sweinfeld1234.github.io/file-dropper/src/assets/icon-64.png"/>
+  <HighResolutionIconUrl DefaultValue="https://sweinfeld1234.github.io/file-dropper/src/assets/icon-128.png"/>
+  <SupportUrl DefaultValue="https://github.com/SWeinfeld1234/file-dropper"/>
 
   <!-- ─── Host requirements ─── -->
   <Requirements>
