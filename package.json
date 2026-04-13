@@ -1,0 +1,22 @@
+{
+  "name": "azure-file-attacher-outlook-addin",
+  "version": "1.0.0",
+  "description": "Outlook Add-in: Drag files from Salesforce or browse Azure storage to attach to emails",
+  "author": "Logicfold",
+  "license": "MIT",
+  "scripts": {
+    "dev": "npx serve src --listen 3000 --ssl-cert certs/localhost.pem --ssl-key certs/localhost-key.pem --cors",
+    "dev:http": "npx serve src --listen 3000 --cors",
+    "generate-certs": "npx mkcert create-ca && npx mkcert create-cert --domains localhost",
+    "validate": "npx office-addin-manifest validate manifest.xml",
+    "sideload": "npx office-addin-dev-certs install && npx office-addin-debugging start manifest.xml",
+    "start": "npx office-addin-debugging start manifest.xml",
+    "stop": "npx office-addin-debugging stop manifest.xml"
+  },
+  "devDependencies": {
+    "office-addin-debugging": "^5.1.0",
+    "office-addin-dev-certs": "^1.13.0",
+    "office-addin-manifest": "^1.13.0",
+    "serve": "^14.2.0"
+  }
+}
