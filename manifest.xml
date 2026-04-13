@@ -6,12 +6,12 @@
            xsi:type="MailApp">
 
   <!-- ─── Basic identity ─── -->
-  <Id>a1b2c3d4-e5f6-7890-abcd-ef1234567890</Id>
+  <Id>f7d3a2b1-c4e5-4a89-9b6d-8e2f1c3a5d7b</Id>
   <Version>1.0.0.0</Version>
   <ProviderName>Logicfold</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="Azure File Attacher"/>
-  <Description DefaultValue="Drag and drop files from Salesforce or browse Azure files to attach them to your email."/>
+  <Description DefaultValue="Drag and drop files to attach them to your email."/>
 
   <!-- ─── Host requirements ─── -->
   <Requirements>
@@ -118,10 +118,10 @@
       <bt:ShortStrings>
         <bt:String id="groupLabel" DefaultValue="Azure Files"/>
         <bt:String id="btnLabel"   DefaultValue="Attach Files"/>
-        <bt:String id="btnDesc"    DefaultValue="Open the file attacher pane to drag-and-drop or browse Azure files."/>
+        <bt:String id="btnDesc"    DefaultValue="Open the file attacher pane to drag and drop files."/>
       </bt:ShortStrings>
       <bt:LongStrings>
-        <bt:String id="btnDescLong" DefaultValue="Open the Azure File Attacher task pane to attach files to your email by dragging from Salesforce or browsing Azure storage directly."/>
+        <bt:String id="btnDescLong" DefaultValue="Open the Azure File Attacher task pane to drag and drop files to attach to your email."/>
       </bt:LongStrings>
     </Resources>
   </VersionOverrides>

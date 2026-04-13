@@ -23,24 +23,12 @@
             </div>
             <div class="header-text">
                 <h1>Azure File Attacher</h1>
-                <p class="subtitle">Drag files here or browse Azure storage</p>
+                <p class="subtitle">Drag files here to attach to your email</p>
             </div>
         </header>
 
-        <!-- ─── Tab bar ─── -->
-        <div class="tab-bar">
-            <button class="tab active" id="tabDrop" onclick="switchTab('drop')">
-                <i class="ms-Icon ms-Icon--CloudDownload" aria-hidden="true"></i>
-                Drop Zone
-            </button>
-            <button class="tab" id="tabBrowse" onclick="switchTab('browse')">
-                <i class="ms-Icon ms-Icon--FabricFolder" aria-hidden="true"></i>
-                Browse Azure
-            </button>
-        </div>
-
         <!-- ════════════════════════════════════════════════════
-             TAB 1 — DROP ZONE
+             DROP ZONE
              ════════════════════════════════════════════════════ -->
         <section id="paneDrop" class="pane active">
             <!-- Drop zone -->
@@ -48,7 +36,7 @@
                 <div class="drop-zone-content">
                     <i class="ms-Icon ms-Icon--CloudUpload drop-icon" aria-hidden="true"></i>
                     <p class="drop-title">Drop files here</p>
-                    <p class="drop-subtitle">Drag from Salesforce, desktop, or file explorer</p>
+                    <p class="drop-subtitle">Drag from desktop or file explorer</p>
                 </div>
                 <!-- Active drag-over state -->
                 <div class="drop-zone-active" style="display:none;">
@@ -69,59 +57,6 @@
 
             <!-- Queued / attached list -->
             <div id="attachmentList" class="attachment-list"></div>
-        </section>
-
-        <!-- ════════════════════════════════════════════════════
-             TAB 2 — BROWSE AZURE
-             ════════════════════════════════════════════════════ -->
-        <section id="paneBrowse" class="pane">
-            <!-- Config bar (connection settings) -->
-            <div class="config-bar">
-                <details class="config-details">
-                    <summary>
-                        <i class="ms-Icon ms-Icon--Settings" aria-hidden="true"></i>
-                        Connection Settings
-                    </summary>
-                    <div class="config-form">
-                        <label>Salesforce Instance URL
-                            <input type="url" id="cfgSfUrl"
-                                   placeholder="https://mycompany.my.salesforce.com"/>
-                        </label>
-                        <label>Session / Access Token
-                            <input type="password" id="cfgSfToken"
-                                   placeholder="Paste Salesforce session ID"/>
-                        </label>
-                        <button class="btn btn-sm" onclick="saveConfig()">
-                            <i class="ms-Icon ms-Icon--Save" aria-hidden="true"></i> Save
-                        </button>
-                    </div>
-                </details>
-            </div>
-
-            <!-- Breadcrumb -->
-            <div id="azureBreadcrumb" class="breadcrumb">
-                <a href="#" onclick="azureNavigate(''); return false;">Root</a>
-            </div>
-
-            <!-- Search -->
-            <div class="search-row">
-                <input type="search" id="azureSearch" placeholder="Filter files…"
-                       oninput="filterAzureFiles()"/>
-            </div>
-
-            <!-- File listing -->
-            <div id="azureFileList" class="azure-file-list">
-                <div class="empty-state">
-                    <i class="ms-Icon ms-Icon--PlugDisconnected" aria-hidden="true"></i>
-                    <p>Configure your Salesforce connection above, then browse Azure files through your Apex endpoint.</p>
-                </div>
-            </div>
-
-            <!-- Loading overlay -->
-            <div id="azureLoading" class="loading-overlay" style="display:none;">
-                <div class="spinner"></div>
-                <p>Loading…</p>
-            </div>
         </section>
 
         <!-- ─── Status bar ─── -->
