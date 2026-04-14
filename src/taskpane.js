@@ -27,6 +27,59 @@ Office.onReady((info) => {
 function initDropZone() {
     const zone = document.getElementById('dropZone');
 
+    // DEBUG: Listen on document level to see if ANY drag events reach the iframe
+    document.addEventListener('dragenter', (e) => {
+        e.preventDefault();
+        setStatus('[DEBUG] dragenter detected on document');
+    });
+
+    document.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+    });
+
+    document.addEventListener('drop', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        var types = e.dataTransfer.types ? Array.from(e.dataTransfer.types).join(', ') : 'none';
+        var fileCount = e.dataTransfer.files ? e.dataTransfer.files.length : 0;
+        var textData = '';
+        try { textData = e.dataTransfer.getData('text/plain') || ''; } catch (err) {}
+        var uriData = '';
+        try { uriData = e.dataTransfer.getData('text/uri-list') || ''; } catch (err) {}
+        var htmlData = '';
+        try { htmlData = e.dataTransfer.getData('text/html') || ''; } catch (err) {}
+
+        setStatus('[DEBUG] DROP: types=[' + types + '] files=' + fileCount + ' text=' + textData.substring(0, 80) + ' uri=' + uriData.substring(0, 80));
+
+        zone.classList.remove('drag-over');
+
+        // 1. Check for actual files (drag from desktop/file explorer)
+        var files = e.dataTransfer.files;
+        if (files && files.length > 0) {
+            handleDroppedFiles(files);
+            return;
+        }
+
+        // 2. Check for URL (drag from browser — link, image, file URL)
+        var url = uriData || textData || '';
+
+        if (url && url.match(/^https?:\/\//)) {
+            handleDroppedUrl(url.split('\n')[0].trim());
+            return;
+        }
+
+        // 3. Try extracting URL from dragged HTML (e.g., anchor or image tag)
+        var match = htmlData.match(/(?:href|src)=["']([^"']+)["']/i);
+        if (match && match[1].match(/^https?:\/\//)) {
+            handleDroppedUrl(match[1]);
+            return;
+        }
+
+        setStatus('No files or links detected. Types: [' + types + ']');
+    });
+
     zone.addEventListener('dragenter', (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -47,39 +100,6 @@ function initDropZone() {
         if (!zone.contains(e.relatedTarget)) {
             zone.classList.remove('drag-over');
         }
-    });
-
-    zone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        zone.classList.remove('drag-over');
-
-        // 1. Check for actual files (drag from desktop/file explorer)
-        const files = e.dataTransfer.files;
-        if (files && files.length > 0) {
-            handleDroppedFiles(files);
-            return;
-        }
-
-        // 2. Check for URL (drag from browser — link, image, file URL)
-        const url = e.dataTransfer.getData('text/uri-list')
-                 || e.dataTransfer.getData('text/plain')
-                 || '';
-
-        if (url && url.match(/^https?:\/\//)) {
-            handleDroppedUrl(url.split('\n')[0].trim());
-            return;
-        }
-
-        // 3. Try extracting URL from dragged HTML (e.g., anchor or image tag)
-        const html = e.dataTransfer.getData('text/html') || '';
-        const match = html.match(/(?:href|src)=["']([^"']+)["']/i);
-        if (match && match[1].match(/^https?:\/\//)) {
-            handleDroppedUrl(match[1]);
-            return;
-        }
-
-        setStatus('No files or links detected in drop.');
     });
 
     // Click to open file picker
