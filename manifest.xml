@@ -120,10 +120,9 @@
       <bt:ShortStrings>
         <bt:String id="groupLabel" DefaultValue="Azure Files"/>
         <bt:String id="btnLabel"   DefaultValue="Attach Files"/>
-        <bt:String id="btnDesc"    DefaultValue="Open the file attacher pane to drag and drop files."/>
       </bt:ShortStrings>
       <bt:LongStrings>
-        <bt:String id="btnDescLong" DefaultValue="Open the Azure File Attacher task pane to drag and drop files to attach to your email."/>
+        <bt:String id="btnDesc" DefaultValue="Open the file attacher pane to drag and drop files to attach to your email."/>
       </bt:LongStrings>
     </Resources>
   </VersionOverrides>
