@@ -66,6 +66,15 @@ function initDropZone() {
     zone.addEventListener('click', () => {
         document.getElementById('filePicker').click();
     });
+
+    // Paste support (Ctrl+V) — works in OWA where drag/drop is blocked by iframe
+    document.addEventListener('paste', (e) => {
+        const files = e.clipboardData && e.clipboardData.files;
+        if (files && files.length > 0) {
+            e.preventDefault();
+            handleDroppedFiles(files);
+        }
+    });
 }
 
 /**
