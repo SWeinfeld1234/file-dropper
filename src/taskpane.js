@@ -54,12 +54,32 @@ function initDropZone() {
         e.stopPropagation();
         zone.classList.remove('drag-over');
 
+        // 1. Check for actual files (drag from desktop/file explorer)
         const files = e.dataTransfer.files;
         if (files && files.length > 0) {
             handleDroppedFiles(files);
-        } else {
-            setStatus('No files detected in drop.');
+            return;
         }
+
+        // 2. Check for URL (drag from browser — link, image, file URL)
+        const url = e.dataTransfer.getData('text/uri-list')
+                 || e.dataTransfer.getData('text/plain')
+                 || '';
+
+        if (url && url.match(/^https?:\/\//)) {
+            handleDroppedUrl(url.split('\n')[0].trim());
+            return;
+        }
+
+        // 3. Try extracting URL from dragged HTML (e.g., anchor or image tag)
+        const html = e.dataTransfer.getData('text/html') || '';
+        const match = html.match(/(?:href|src)=["']([^"']+)["']/i);
+        if (match && match[1].match(/^https?:\/\//)) {
+            handleDroppedUrl(match[1]);
+            return;
+        }
+
+        setStatus('No files or links detected in drop.');
     });
 
     // Click to open file picker
@@ -87,6 +107,69 @@ function handleDroppedFiles(fileList) {
     for (let i = 0; i < fileList.length; i++) {
         const file = fileList[i];
         readAndAttach(file, file.name, file.type || 'application/octet-stream');
+    }
+}
+
+/**
+ * Handle a URL dropped from the browser.
+ * Uses Office.js addFileAttachmentAsync to let Outlook download the file directly.
+ * Falls back to client-side fetch if that fails.
+ */
+function handleDroppedUrl(url) {
+    var urlPath;
+    try { urlPath = new URL(url).pathname; } catch (e) { urlPath = url; }
+    var fileName = decodeURIComponent(urlPath.split('/').pop()) || 'attachment';
+    // Clean up query strings from filename
+    fileName = fileName.split('?')[0].split('#')[0] || 'attachment';
+
+    var rowId = addAttachmentRow(fileName, '', 'attaching');
+    setStatus('Attaching ' + fileName + ' from URL…');
+
+    // Try letting Outlook fetch the file directly from the URL
+    Office.context.mailbox.item.addFileAttachmentAsync(
+        url,
+        fileName,
+        { isInline: false },
+        function (result) {
+            if (result.status === Office.AsyncResultStatus.Succeeded) {
+                console.log('Attached from URL:', fileName, '| ID:', result.value);
+                updateAttachmentStatus(rowId, 'attached');
+                setStatus('✓ ' + fileName + ' attached');
+            } else {
+                console.warn('addFileAttachmentAsync failed, trying client-side fetch:', result.error.message);
+                fetchAndAttach(url, fileName, rowId);
+            }
+        }
+    );
+}
+
+/**
+ * Fallback: fetch the file client-side, convert to base64, and attach.
+ * Works when the URL is same-origin or has permissive CORS headers.
+ */
+async function fetchAndAttach(url, fileName, rowId) {
+    try {
+        setStatus('Downloading ' + fileName + '…');
+        var response = await fetch(url);
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        var blob = await response.blob();
+        var mimeType = blob.type || 'application/octet-stream';
+
+        var reader = new FileReader();
+        reader.onload = function () {
+            var base64 = reader.result.split(',')[1];
+            updateAttachmentStatus(rowId, 'attaching');
+            attachToEmail(base64, fileName, mimeType, rowId);
+        };
+        reader.onerror = function () {
+            updateAttachmentStatus(rowId, 'error', 'Failed to read file');
+            setStatus('Error reading ' + fileName);
+        };
+        reader.readAsDataURL(blob);
+    } catch (err) {
+        console.error('fetchAndAttach error:', err);
+        updateAttachmentStatus(rowId, 'error', err.message);
+        setStatus('Error: Could not download ' + fileName + '. The file may require authentication.');
     }
 }
 
