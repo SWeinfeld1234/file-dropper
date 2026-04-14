@@ -2,8 +2,8 @@
    Azure File Attacher – Outlook Add-in Task Pane Logic
    ═══════════════════════════════════════════════════════════
 
-   Drop zone – User drags files from desktop into this pane,
-               we read them as base64 and attach via Office.js.
+   Drop zone – User drags files from Salesforce LWC or desktop
+               into this pane, we attach via Office.js.
    ═══════════════════════════════════════════════════════════ */
 
 // ─── Globals ──────────────────────────────────────────────
@@ -27,10 +27,10 @@ Office.onReady((info) => {
 function initDropZone() {
     const zone = document.getElementById('dropZone');
 
-    // DEBUG: Listen on document level to see if ANY drag events reach the iframe
+    // Listen on document level so drops anywhere in the pane are caught
     document.addEventListener('dragenter', (e) => {
         e.preventDefault();
-        setStatus('[DEBUG] dragenter detected on document');
+        zone.classList.add('drag-over');
     });
 
     document.addEventListener('dragover', (e) => {
@@ -38,31 +38,46 @@ function initDropZone() {
         e.dataTransfer.dropEffect = 'copy';
     });
 
+    document.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        if (!document.documentElement.contains(e.relatedTarget)) {
+            zone.classList.remove('drag-over');
+        }
+    });
+
     document.addEventListener('drop', (e) => {
         e.preventDefault();
         e.stopPropagation();
-
-        var types = e.dataTransfer.types ? Array.from(e.dataTransfer.types).join(', ') : 'none';
-        var fileCount = e.dataTransfer.files ? e.dataTransfer.files.length : 0;
-        var textData = '';
-        try { textData = e.dataTransfer.getData('text/plain') || ''; } catch (err) {}
-        var uriData = '';
-        try { uriData = e.dataTransfer.getData('text/uri-list') || ''; } catch (err) {}
-        var htmlData = '';
-        try { htmlData = e.dataTransfer.getData('text/html') || ''; } catch (err) {}
-
-        setStatus('[DEBUG] DROP: types=[' + types + '] files=' + fileCount + ' text=' + textData.substring(0, 80) + ' uri=' + uriData.substring(0, 80));
-
         zone.classList.remove('drag-over');
 
-        // 1. Check for actual files (drag from desktop/file explorer)
+        // 1. Check for custom file data from Salesforce LWC (base64 passed directly)
+        var fileData = '';
+        try { fileData = e.dataTransfer.getData('application/x-file-data'); } catch (err) {}
+        if (fileData) {
+            try {
+                var parsed = JSON.parse(fileData);
+                if (parsed.base64Content && parsed.fileName) {
+                    setStatus('Attaching ' + parsed.fileName + '…');
+                    attachToEmail(parsed.base64Content, parsed.fileName, parsed.mimeType || 'application/octet-stream');
+                    return;
+                }
+            } catch (err) {
+                console.error('Failed to parse x-file-data:', err);
+            }
+        }
+
+        // 2. Check for actual files (drag from desktop/file explorer)
         var files = e.dataTransfer.files;
         if (files && files.length > 0) {
             handleDroppedFiles(files);
             return;
         }
 
-        // 2. Check for URL (drag from browser — link, image, file URL)
+        // 3. Check for URL (drag from browser — link, image, file URL)
+        var uriData = '';
+        try { uriData = e.dataTransfer.getData('text/uri-list') || ''; } catch (err) {}
+        var textData = '';
+        try { textData = e.dataTransfer.getData('text/plain') || ''; } catch (err) {}
         var url = uriData || textData || '';
 
         if (url && url.match(/^https?:\/\//)) {
@@ -70,14 +85,16 @@ function initDropZone() {
             return;
         }
 
-        // 3. Try extracting URL from dragged HTML (e.g., anchor or image tag)
+        // 4. Try extracting URL from dragged HTML (e.g., anchor or image tag)
+        var htmlData = '';
+        try { htmlData = e.dataTransfer.getData('text/html') || ''; } catch (err) {}
         var match = htmlData.match(/(?:href|src)=["']([^"']+)["']/i);
         if (match && match[1].match(/^https?:\/\//)) {
             handleDroppedUrl(match[1]);
             return;
         }
 
-        setStatus('No files or links detected. Types: [' + types + ']');
+        setStatus('No files or links detected in drop.');
     });
 
     zone.addEventListener('dragenter', (e) => {
@@ -96,7 +113,6 @@ function initDropZone() {
     zone.addEventListener('dragleave', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        // Only remove if we're actually leaving the zone
         if (!zone.contains(e.relatedTarget)) {
             zone.classList.remove('drag-over');
         }
@@ -107,7 +123,7 @@ function initDropZone() {
         document.getElementById('filePicker').click();
     });
 
-    // Paste support (Ctrl+V) — works in OWA where drag/drop is blocked by iframe
+    // Paste support (Ctrl+V)
     document.addEventListener('paste', (e) => {
         const files = e.clipboardData && e.clipboardData.files;
         if (files && files.length > 0) {
@@ -139,13 +155,11 @@ function handleDroppedUrl(url) {
     var urlPath;
     try { urlPath = new URL(url).pathname; } catch (e) { urlPath = url; }
     var fileName = decodeURIComponent(urlPath.split('/').pop()) || 'attachment';
-    // Clean up query strings from filename
     fileName = fileName.split('?')[0].split('#')[0] || 'attachment';
 
     var rowId = addAttachmentRow(fileName, '', 'attaching');
     setStatus('Attaching ' + fileName + ' from URL…');
 
-    // Try letting Outlook fetch the file directly from the URL
     Office.context.mailbox.item.addFileAttachmentAsync(
         url,
         fileName,
@@ -165,7 +179,6 @@ function handleDroppedUrl(url) {
 
 /**
  * Fallback: fetch the file client-side, convert to base64, and attach.
- * Works when the URL is same-origin or has permissive CORS headers.
  */
 async function fetchAndAttach(url, fileName, rowId) {
     try {
@@ -201,7 +214,6 @@ function handleFilePick(event) {
     if (files && files.length > 0) {
         handleDroppedFiles(files);
     }
-    // Reset so the same file can be picked again
     event.target.value = '';
 }
 
@@ -214,7 +226,6 @@ function readAndAttach(file, fileName, mimeType) {
     const reader = new FileReader();
 
     reader.onload = function () {
-        // result is "data:<mime>;base64,<data>" — strip the prefix
         const base64 = reader.result.split(',')[1];
         updateAttachmentStatus(rowId, 'attaching');
         attachToEmail(base64, fileName, mimeType, rowId);
