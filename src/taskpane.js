@@ -33,8 +33,19 @@
 var officeReady = false;
 var canAttachBase64 = false; // set true only if req set 1.8 API exists
 
+// Build version — bump this IN LOCKSTEP with manifest.xml <Version>.
+// It's shown in the task pane footer so you can confirm at a glance which
+// build actually loaded (Office caches add-in web content). If the footer
+// shows this number, the new taskpane.js is live; if it shows an older
+// number or nothing, you're still on a cached/old build.
+var ADDIN_VERSION = '1.0.1';
+
 /* --- Office.js Initialization -------------------------------- */
 Office.onReady(function (info) {
+    // Stamp the build version into the footer (and console) regardless of host,
+    // so you can verify which build loaded.
+    showBuildVersion();
+
     if (info.host === Office.HostType.Outlook) {
         officeReady = true;
 
@@ -448,6 +459,13 @@ function statusLabel(status, detail) {
 function setStatus(msg) {
     var el = document.getElementById('statusText');
     if (el) { el.textContent = msg; }
+}
+
+/** Show the build version in the footer so the loaded build is verifiable. */
+function showBuildVersion() {
+    var el = document.getElementById('buildVersion');
+    if (el) { el.textContent = 'v' + ADDIN_VERSION; }
+    if (window.console) { console.log('Azure File Attacher build v' + ADDIN_VERSION); }
 }
 
 function getFileIconClass(fileName) {
