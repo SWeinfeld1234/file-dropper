@@ -33,12 +33,13 @@
 var officeReady = false;
 var canAttachBase64 = false; // set true only if req set 1.8 API exists
 
-// Build version — bump this IN LOCKSTEP with manifest.xml <Version>.
-// It's shown in the task pane footer so you can confirm at a glance which
-// build actually loaded (Office caches add-in web content). If the footer
-// shows this number, the new taskpane.js is live; if it shows an older
-// number or nothing, you're still on a cached/old build.
-var ADDIN_VERSION = '1.0.1';
+// Build version — bump on every published change to the hosted files.
+// Shown in the task pane footer so you can confirm at a glance which build
+// actually loaded (Office caches add-in web content). If the footer shows this
+// number, the new taskpane.js is live; an older number or nothing = cached/old.
+// (This is the JS build version; the manifest <Version> only changes when the
+// manifest itself does and the admin re-uploads it.)
+var ADDIN_VERSION = '1.0.2';
 
 /* --- Office.js Initialization -------------------------------- */
 Office.onReady(function (info) {
@@ -158,11 +159,14 @@ function handleDrop(e) {
     }
 
     // 1. URL dragged as plain text / uri-list (the version-proof path).
-    //    Salesforce should set BOTH 'text/uri-list' and 'text/plain'
-    //    to the SAS URL on dragstart.
-    var url = firstUrl(safeGet(dt, 'text/uri-list')) || firstUrl(safeGet(dt, 'text/plain'));
+    //    Salesforce sets 'text/uri-list' to the clean URL, and 'text/plain'
+    //    to "<url>\n<filename>". The filename is deliberately NOT in the URL
+    //    (it can contain patient identifiers and the URL hits Exchange mail
+    //    logs); we read it from the second line of text/plain instead.
+    var plainText = safeGet(dt, 'text/plain');
+    var url = firstUrl(safeGet(dt, 'text/uri-list')) || firstUrl(plainText);
     if (url) {
-        handleDroppedUrl(url);
+        handleDroppedUrl(url, nameHintFromText(plainText));
         return;
     }
 
@@ -218,8 +222,10 @@ function handleDrop(e) {
  * Attach a URL by letting Outlook/Exchange download it server-side.
  * Works on ALL Outlook versions (requirement set 1.1).
  */
-function handleDroppedUrl(url) {
-    var fileName = fileNameFromUrl(url);
+function handleDroppedUrl(url, nameHint) {
+    // Prefer the explicit name passed via the drag payload (keeps the filename
+    // out of the URL); fall back to parsing the URL's last path segment.
+    var fileName = nameHint || fileNameFromUrl(url);
     var rowId = addAttachmentRow(fileName, '', 'attaching');
     setStatus('Attaching ' + fileName + ' from URL...');
 
@@ -519,42 +525,38 @@ function firstUrl(text) {
 }
 
 /**
+ * Find the filename hint in dragged text. Salesforce sends text/plain as
+ * "<url>\n<filename>"; this returns the first line that is NOT a URL and not a
+ * uri-list comment. The gateway URL itself carries no filename (by design), so
+ * this is how the add-in names the attachment without the name touching the URL.
+ */
+function nameHintFromText(text) {
+    if (!text) { return ''; }
+    var lines = text.split(/[\r\n]+/);
+    for (var i = 0; i < lines.length; i++) {
+        var line = trim(lines[i]);
+        if (line && line.charAt(0) !== '#' && !/^https?:\/\//i.test(line)) {
+            return line;
+        }
+    }
+    return '';
+}
+
+/**
  * Derive a filename from a URL without using new URL().
- *
- * Order matters:
- *   1. An explicit 'fn' query param (the gateway URL carries the BARE filename
- *      here, e.g. ...?token=...&code=...&fn=cbc.pdf). The gateway URL's path is
- *      '/api/attach', so without this every attachment would be named "attach".
- *   2. Fall back to the last path segment (works for a plain SAS URL that ends
- *      in the real filename, e.g. .../folder/cbc.pdf?sv=...).
+ * Fallback only — used when no explicit name hint was dragged (e.g. a plain SAS
+ * URL whose path ends in the real filename, or a dragged HTML anchor).
  */
 function fileNameFromUrl(url) {
     var s = String(url);
-
-    // 1. Look for an 'fn' query parameter (IE11-safe manual parse).
-    var qIndex = s.indexOf('?');
-    if (qIndex !== -1) {
-        var query = s.substring(qIndex + 1).split('#')[0];
-        var pairs = query.split('&');
-        for (var i = 0; i < pairs.length; i++) {
-            var kv = pairs[i].split('=');
-            if (kv[0] === 'fn' && kv.length > 1 && kv[1]) {
-                try {
-                    return decodeURIComponent(kv[1].replace(/\+/g, '%20')) || 'attachment';
-                } catch (e) {
-                    return kv[1];
-                }
-            }
-        }
-    }
-
-    // 2. Fall back to the last path segment.
+    // strip query and fragment
     s = s.split('#')[0].split('?')[0];
+    // take last path segment
     var parts = s.split('/');
     var last = parts[parts.length - 1] || 'attachment';
     try {
         last = decodeURIComponent(last);
-    } catch (e2) { /* keep raw */ }
+    } catch (e) { /* keep raw */ }
     return last || 'attachment';
 }
 
