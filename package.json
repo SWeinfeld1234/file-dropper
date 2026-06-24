@@ -17,6 +17,7 @@
     "office-addin-debugging": "^5.1.0",
     "office-addin-dev-certs": "^1.13.0",
     "office-addin-manifest": "^1.13.0",
-    "serve": "^14.2.0"
+    "serve": "^14.2.0",
+    "sharp": "^0.34.5"
   }
 }

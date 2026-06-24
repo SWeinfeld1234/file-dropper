@@ -500,17 +500,43 @@ function firstUrl(text) {
     return '';
 }
 
-/** Derive a filename from a URL without using new URL(). */
+/**
+ * Derive a filename from a URL without using new URL().
+ *
+ * Order matters:
+ *   1. An explicit 'fn' query param (the gateway URL carries the BARE filename
+ *      here, e.g. ...?token=...&code=...&fn=cbc.pdf). The gateway URL's path is
+ *      '/api/attach', so without this every attachment would be named "attach".
+ *   2. Fall back to the last path segment (works for a plain SAS URL that ends
+ *      in the real filename, e.g. .../folder/cbc.pdf?sv=...).
+ */
 function fileNameFromUrl(url) {
     var s = String(url);
-    // strip query and fragment
+
+    // 1. Look for an 'fn' query parameter (IE11-safe manual parse).
+    var qIndex = s.indexOf('?');
+    if (qIndex !== -1) {
+        var query = s.substring(qIndex + 1).split('#')[0];
+        var pairs = query.split('&');
+        for (var i = 0; i < pairs.length; i++) {
+            var kv = pairs[i].split('=');
+            if (kv[0] === 'fn' && kv.length > 1 && kv[1]) {
+                try {
+                    return decodeURIComponent(kv[1].replace(/\+/g, '%20')) || 'attachment';
+                } catch (e) {
+                    return kv[1];
+                }
+            }
+        }
+    }
+
+    // 2. Fall back to the last path segment.
     s = s.split('#')[0].split('?')[0];
-    // take last path segment
     var parts = s.split('/');
     var last = parts[parts.length - 1] || 'attachment';
     try {
         last = decodeURIComponent(last);
-    } catch (e) { /* keep raw */ }
+    } catch (e2) { /* keep raw */ }
     return last || 'attachment';
 }
 

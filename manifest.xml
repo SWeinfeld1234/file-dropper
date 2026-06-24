@@ -1,129 +1,135 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
-           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-           xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
-           xmlns:mailappor="http://schemas.microsoft.com/office/mailappversionoverrides"
-           xsi:type="MailApp">
+<OfficeApp
+  xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+  xmlns:mailappor="http://schemas.microsoft.com/office/mailappversionoverrides"
+  xsi:type="MailApp">
 
-  <!-- ─── Basic identity ─── -->
   <Id>f7d3a2b1-c4e5-4a89-9b6d-8e2f1c3a5d7b</Id>
-  <Version>1.0.0.0</Version>
+  <Version>1.0.1.0</Version>
   <ProviderName>Logicfold</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
-  <DisplayName DefaultValue="Azure File Attacher"/>
-  <Description DefaultValue="Drag and drop files to attach them to your email."/>
-  <IconUrl DefaultValue="https://sweinfeld1234.github.io/file-dropper/src/assets/icon-64.png"/>
-  <HighResolutionIconUrl DefaultValue="https://sweinfeld1234.github.io/file-dropper/src/assets/icon-128.png"/>
-  <SupportUrl DefaultValue="https://github.com/SWeinfeld1234/file-dropper"/>
+  <DisplayName DefaultValue="Azure File Attacher" />
+  <Description DefaultValue="Drag and drop files to attach them to your email." />
+  <IconUrl DefaultValue="https://sweinfeld1234.github.io/file-dropper/src/assets/icon-64.png" />
+  <HighResolutionIconUrl
+    DefaultValue="https://sweinfeld1234.github.io/file-dropper/src/assets/icon-128.png" />
+  <SupportUrl DefaultValue="https://github.com/SWeinfeld1234/file-dropper" />
 
-  <!-- ─── Host requirements ─── -->
   <Requirements>
     <Sets>
-      <Set Name="Mailbox" MinVersion="1.8"/>
+      <Set Name="Mailbox" MinVersion="1.5" />
     </Sets>
   </Requirements>
 
   <FormSettings>
     <Form xsi:type="ItemEdit">
       <DesktopSettings>
-        <SourceLocation DefaultValue="https://sweinfeld1234.github.io/file-dropper/src/taskpane.html"/>
+        <SourceLocation
+          DefaultValue="https://sweinfeld1234.github.io/file-dropper/src/taskpane.html" />
       </DesktopSettings>
     </Form>
   </FormSettings>
 
   <Permissions>ReadWriteItem</Permissions>
+
   <Rule xsi:type="RuleCollection" Mode="Or">
-    <Rule xsi:type="ItemIs" ItemType="Message" FormType="Edit"/>
-    <Rule xsi:type="ItemIs" ItemType="Appointment" FormType="Edit"/>
+    <Rule xsi:type="ItemIs" ItemType="Message" FormType="Edit" />
+    <Rule xsi:type="ItemIs" ItemType="Appointment" FormType="Edit" />
   </Rule>
 
   <DisableEntityHighlighting>false</DisableEntityHighlighting>
 
-  <!-- ─── Version overrides (ribbon button) ─── -->
   <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides"
-                    xsi:type="VersionOverridesV1_0">
+    xsi:type="VersionOverridesV1_0">
+
     <Requirements>
-      <bt:Sets DefaultMinVersion="1.8">
-        <bt:Set Name="Mailbox"/>
+      <bt:Sets DefaultMinVersion="1.5">
+        <bt:Set Name="Mailbox" />
       </bt:Sets>
     </Requirements>
 
     <Hosts>
       <Host xsi:type="MailHost">
         <DesktopFormFactor>
-          <!-- ─── Function file (not used but required) ─── -->
-          <FunctionFile resid="functionFileUrl"/>
 
-          <!-- ─── Compose surface: Message ─── -->
+          <FunctionFile resid="functionFileUrl" />
+
           <ExtensionPoint xsi:type="MessageComposeCommandSurface">
             <OfficeTab id="TabDefault">
               <Group id="msgComposeGroup">
-                <Label resid="groupLabel"/>
-
+                <Label resid="groupLabel" />
                 <Control xsi:type="Button" id="openPaneBtn">
-                  <Label resid="btnLabel"/>
+                  <Label resid="btnLabel" />
                   <Supertip>
-                    <Title resid="btnLabel"/>
-                    <Description resid="btnDesc"/>
+                    <Title resid="btnLabel" />
+                    <Description resid="btnDesc" />
                   </Supertip>
                   <Icon>
-                    <bt:Image size="16" resid="icon16"/>
-                    <bt:Image size="32" resid="icon32"/>
-                    <bt:Image size="80" resid="icon80"/>
+                    <bt:Image size="16" resid="icon16" />
+                    <bt:Image size="32" resid="icon32" />
+                    <bt:Image size="80" resid="icon80" />
                   </Icon>
                   <Action xsi:type="ShowTaskpane">
-                    <SourceLocation resid="taskPaneUrl"/>
+                    <SourceLocation resid="taskPaneUrl" />
                   </Action>
                 </Control>
               </Group>
             </OfficeTab>
           </ExtensionPoint>
 
-          <!-- ─── Compose surface: Appointment ─── -->
           <ExtensionPoint xsi:type="AppointmentOrganizerCommandSurface">
             <OfficeTab id="TabDefault">
               <Group id="apptComposeGroup">
-                <Label resid="groupLabel"/>
-
+                <Label resid="groupLabel" />
                 <Control xsi:type="Button" id="openPaneBtnAppt">
-                  <Label resid="btnLabel"/>
+                  <Label resid="btnLabel" />
                   <Supertip>
-                    <Title resid="btnLabel"/>
-                    <Description resid="btnDesc"/>
+                    <Title resid="btnLabel" />
+                    <Description resid="btnDesc" />
                   </Supertip>
                   <Icon>
-                    <bt:Image size="16" resid="icon16"/>
-                    <bt:Image size="32" resid="icon32"/>
-                    <bt:Image size="80" resid="icon80"/>
+                    <bt:Image size="16" resid="icon16" />
+                    <bt:Image size="32" resid="icon32" />
+                    <bt:Image size="80" resid="icon80" />
                   </Icon>
                   <Action xsi:type="ShowTaskpane">
-                    <SourceLocation resid="taskPaneUrl"/>
+                    <SourceLocation resid="taskPaneUrl" />
                   </Action>
                 </Control>
               </Group>
             </OfficeTab>
           </ExtensionPoint>
+
         </DesktopFormFactor>
       </Host>
     </Hosts>
 
     <Resources>
       <bt:Images>
-        <bt:Image id="icon16"  DefaultValue="https://sweinfeld1234.github.io/file-dropper/src/assets/icon-16.png"/>
-        <bt:Image id="icon32"  DefaultValue="https://sweinfeld1234.github.io/file-dropper/src/assets/icon-32.png"/>
-        <bt:Image id="icon80"  DefaultValue="https://sweinfeld1234.github.io/file-dropper/src/assets/icon-80.png"/>
+        <bt:Image id="icon16"
+          DefaultValue="https://sweinfeld1234.github.io/file-dropper/src/assets/icon-16.png" />
+        <bt:Image id="icon32"
+          DefaultValue="https://sweinfeld1234.github.io/file-dropper/src/assets/icon-32.png" />
+        <bt:Image id="icon80"
+          DefaultValue="https://sweinfeld1234.github.io/file-dropper/src/assets/icon-80.png" />
       </bt:Images>
       <bt:Urls>
-        <bt:Url id="taskPaneUrl"    DefaultValue="https://sweinfeld1234.github.io/file-dropper/src/taskpane.html"/>
-        <bt:Url id="functionFileUrl" DefaultValue="https://sweinfeld1234.github.io/file-dropper/src/function-file.html"/>
+        <bt:Url id="taskPaneUrl"
+          DefaultValue="https://sweinfeld1234.github.io/file-dropper/src/taskpane.html" />
+        <bt:Url id="functionFileUrl"
+          DefaultValue="https://sweinfeld1234.github.io/file-dropper/src/function-file.html" />
       </bt:Urls>
       <bt:ShortStrings>
-        <bt:String id="groupLabel" DefaultValue="Azure Files"/>
-        <bt:String id="btnLabel"   DefaultValue="Attach Files"/>
+        <bt:String id="groupLabel" DefaultValue="Azure Files" />
+        <bt:String id="btnLabel" DefaultValue="Attach Files" />
       </bt:ShortStrings>
       <bt:LongStrings>
-        <bt:String id="btnDesc" DefaultValue="Open the file attacher pane to drag and drop files to attach to your email."/>
+        <bt:String id="btnDesc"
+          DefaultValue="Open the file attacher pane to drag and drop files to attach to your email." />
       </bt:LongStrings>
     </Resources>
+
   </VersionOverrides>
 </OfficeApp>
