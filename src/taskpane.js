@@ -39,7 +39,7 @@ var canAttachBase64 = false; // set true only if req set 1.8 API exists
 // number, the new taskpane.js is live; an older number or nothing = cached/old.
 // (This is the JS build version; the manifest <Version> only changes when the
 // manifest itself does and the admin re-uploads it.)
-var ADDIN_VERSION = '1.0.2';
+var ADDIN_VERSION = '1.0.3';
 
 /* --- Office.js Initialization -------------------------------- */
 Office.onReady(function (info) {
@@ -158,13 +158,26 @@ function handleDrop(e) {
         return;
     }
 
-    // 1. URL dragged as plain text / uri-list (the version-proof path).
-    //    Salesforce sets 'text/uri-list' to the clean URL, and 'text/plain'
-    //    to "<url>\n<filename>". The filename is deliberately NOT in the URL
-    //    (it can contain patient identifiers and the URL hits Exchange mail
-    //    logs); we read it from the second line of text/plain instead.
     var plainText = safeGet(dt, 'text/plain');
-    var url = firstUrl(safeGet(dt, 'text/uri-list')) || firstUrl(plainText);
+    var uriList = safeGet(dt, 'text/uri-list');
+
+    // 1a. Obfuscated gateway blob (the normal Salesforce path). It is NOT an http
+    //     URL on the clipboard — so casually dragging it into a browser does nothing.
+    //     Decode it back to "<url>|<filename>" and attach. (Key is public; this is
+    //     anti-accident obfuscation, not security.)
+    if (plainText && plainText.indexOf('http') !== 0 && !firstUrl(uriList)) {
+        var decoded = unscrambleLink(trim(plainText));
+        if (decoded && decoded.indexOf('http') === 0) {
+            var sep = decoded.indexOf('|');
+            var dUrl = sep > -1 ? decoded.substring(0, sep) : decoded;
+            var dName = sep > -1 ? decoded.substring(sep + 1) : '';
+            handleDroppedUrl(dUrl, dName);
+            return;
+        }
+    }
+
+    // 1b. Plain URL dragged as text / uri-list (legacy or direct drag).
+    var url = firstUrl(uriList) || firstUrl(plainText);
     if (url) {
         handleDroppedUrl(url, nameHintFromText(plainText));
         return;
@@ -525,10 +538,30 @@ function firstUrl(text) {
 }
 
 /**
- * Find the filename hint in dragged text. Salesforce sends text/plain as
- * "<url>\n<filename>"; this returns the first line that is NOT a URL and not a
- * uri-list comment. The gateway URL itself carries no filename (by design), so
- * this is how the add-in names the attachment without the name touching the URL.
+ * Reverse of the LWC's scrambleLink: keyed XOR + base64url. The key is PUBLIC by
+ * design — it only keeps a usable URL off the clipboard so a casual drag/paste into
+ * a browser bar does nothing. Must stay identical to the LWC's key/algorithm.
+ * Returns "" on any failure (so we fall through to the plain-URL path).
+ */
+function unscrambleLink(blob) {
+    try {
+        var key = 'RefuahAttachGw';
+        var b64 = String(blob).replace(/-/g, '+').replace(/_/g, '/');
+        while (b64.length % 4) { b64 += '='; }
+        var x = atob(b64);
+        var s = '';
+        for (var i = 0; i < x.length; i++) {
+            s += String.fromCharCode(x.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+        }
+        return decodeURIComponent(s);
+    } catch (e) {
+        return '';
+    }
+}
+
+/**
+ * Find the filename hint in dragged text (legacy plain-URL path). Returns the first
+ * line that is NOT a URL and not a uri-list comment.
  */
 function nameHintFromText(text) {
     if (!text) { return ''; }
