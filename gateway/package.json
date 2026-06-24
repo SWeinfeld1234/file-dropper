@@ -1,0 +1,15 @@
+{
+  "name": "refuah-attach-gateway",
+  "version": "1.0.0",
+  "description": "Azure Function that streams one file from refuahfiles per signed, encrypted token (Outlook attachment gateway).",
+  "main": "src/functions/*.js",
+  "scripts": {
+    "start": "func start"
+  },
+  "dependencies": {
+    "@azure/functions": "^4.5.0",
+    "@azure/identity": "^4.4.0",
+    "@azure/storage-file-share": "^12.25.0",
+    "@azure/data-tables": "^13.3.0"
+  }
+}

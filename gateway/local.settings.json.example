@@ -1,0 +1,16 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "AzureWebJobsStorage": "<connection string for the Function's own storage (hosts the gatewaytokens table)>",
+
+    "STORAGE_ACCOUNT": "refuahfiles",
+    "MAX_FILE_MB": "150",
+    "ENFORCE_ONE_TIME": "true",
+
+    "GATEWAY_HMAC_SECRET": "<base64 shared secret — in Azure this is a Key Vault reference, NOT a literal>",
+    "GATEWAY_HMAC_SECRET_PREV": "<optional: previous base64 secret, set ONLY during a rotation overlap window>",
+
+    "APPLICATIONINSIGHTS_CONNECTION_STRING": "<app insights connection string>"
+  }
+}
