@@ -39,7 +39,7 @@ var canAttachBase64 = false; // set true only if req set 1.8 API exists
 // number, the new taskpane.js is live; an older number or nothing = cached/old.
 // (This is the JS build version; the manifest <Version> only changes when the
 // manifest itself does and the admin re-uploads it.)
-var ADDIN_VERSION = '1.0.3';
+var ADDIN_VERSION = '1.0.4';
 
 /* --- Office.js Initialization -------------------------------- */
 Office.onReady(function (info) {
@@ -158,8 +158,11 @@ function handleDrop(e) {
         return;
     }
 
-    var plainText = safeGet(dt, 'text/plain');
-    var uriList = safeGet(dt, 'text/uri-list');
+    // IE11 / Trident (classic Outlook 2019) does NOT recognize MIME format names in
+    // getData — it only knows the legacy 'Text' and 'URL'. So read both: the MIME
+    // name (modern Outlook / Chromium) and the legacy name (Outlook 2019).
+    var plainText = safeGet(dt, 'text/plain') || safeGet(dt, 'Text');
+    var uriList = safeGet(dt, 'text/uri-list') || safeGet(dt, 'URL');
 
     // 1a. Obfuscated gateway blob (the normal Salesforce path). It is NOT an http
     //     URL on the clipboard — so casually dragging it into a browser does nothing.
@@ -228,7 +231,14 @@ function handleDrop(e) {
         return;
     }
 
-    setStatus('No files or links detected in drop.');
+    // Diagnostic (no console on Outlook 2019): show what the drop actually carried.
+    var dbg = '';
+    try {
+        var t = dt.types ? Array.prototype.join.call(dt.types, ',') : 'none';
+        var hadText = (safeGet(dt, 'text/plain') || safeGet(dt, 'Text')) ? 'y' : 'n';
+        dbg = ' [types=' + t + '; text=' + hadText + ']';
+    } catch (e) { /* ignore */ }
+    setStatus('No files or links detected in drop.' + dbg);
 }
 
 /**
